@@ -1,0 +1,37 @@
+ hosts: dockerhost
+  vars:
+          - url: "https://download.docker.com/linux/centos/7/x86_64/stable/"
+  tasks:
+  - name: "Add Docker Repository"
+    yum_repository:
+      name: "docker"
+      description:  "docker repo"
+      baseurl: "{{url}}"
+      gpgcheck: no
+  - name: "Install docker-ce"
+    package:
+     name: "docker-ce-18.09.1-3.el7.x86_64"
+     state: present
+  - name: docker service start
+    service:
+     name: "docker"
+     state: started
+     enabled: yes
+  - copy:
+          src: "home.html"
+          dest: "/home"
+  - name: Install Docker SDK for python3
+    command: pip3 install docker
+  - name: image  pull from docker hub
+    docker_image:
+            name: httpd
+            source: pull
+  - name: create the container
+    docker_container:
+        name: myapplication
+        image: httpd
+        state: started
+        restart: yes
+        exposed_ports: 80
+        ports: "8082:80"
+        volumes: "/home:/usr/local/apache2/htdocs/"
